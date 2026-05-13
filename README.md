@@ -92,27 +92,54 @@ kill %1                # stop ingester
 cat results/RESULTS.md
 ```
 
-Output written to `results/RESULTS.md` (table appended per scenario) and `results/raw/run-<rps>.csv` (per-sample latency).
+Output written to `results/RESULTS.md` (table appended per scenario) and `results/raw/run-<engine>-<rps>.csv` (per-sample latency).
 
 Custom runs: `TARGET_RPS=N DURATION_S=N SAMPLE_EVERY=N node src/bench.js`.
+
+## Running Against ClickHouse Cloud (production-equivalent)
+
+DuckDB is the local stand-in for ClickHouse's data-plane behavior. To get measurements from the actual production-target stack, point the bench at a ClickHouse Cloud free-tier instance:
+
+1. Sign up at [clickhouse.com/cloud](https://clickhouse.com/cloud) (30-day free trial, $300 credit, no credit card for trial).
+2. Create a service in any region. Copy the HTTPS endpoint, username, and password from the connection panel.
+3. Run the ClickHouse Cloud ingester:
+
+```sh
+export CLICKHOUSE_URL=https://your-service.region.clickhouse.cloud:8443
+export CLICKHOUSE_USER=default
+export CLICKHOUSE_PASSWORD=...
+export CLICKHOUSE_DATABASE=default
+npm run ingest:clickhouse &
+sleep 2
+ENGINE='ClickHouse Cloud' npm run bench:1000
+kill %1
+```
+
+The bench labels its output rows with `ENGINE` so DuckDB and ClickHouse Cloud results coexist in `results/RESULTS.md` and `results/raw/`. Identical flush policy (500ms / 1000-row), identical event generator, identical measurement loop — the only difference is the backend.
+
+What this proves: the same benchmark harness against the actual managed-service production target, with measured latency directly comparable to the DuckDB rows.
 
 ## File Layout
 
 ```
 evt-pipeline-bench/
 ├── package.json
-├── schema/init.sql          # DDL — table + logical aggregation view
+├── schema/init.sql                       # DuckDB DDL — table + logical aggregation view
 ├── src/
-│   ├── ingester.js          # Fastify HTTP service + batched DuckDB writer
-│   └── bench.js             # Load generator + measurement
+│   ├── ingester.js                       # Local: Fastify + batched DuckDB writer
+│   ├── ingester-clickhouse.js            # Production-target: Fastify + batched ClickHouse Cloud writer
+│   └── bench.js                          # Load generator + measurement
 ├── results/
-│   ├── RESULTS.md           # Headline numbers + interpretation
-│   └── raw/run-<rps>.csv    # Per-sample latency
-├── cost_model.md            # Source-linked cost reality check
+│   ├── RESULTS.md                        # Headline numbers + interpretation
+│   └── raw/run-<engine>-<rps>.csv        # Per-sample latency
+├── docs/
+│   └── segment-mv-design.md              # ClickHouse MV design for stateful segments
+├── cost_model.md                         # Source-linked cost reality check
 └── README.md
 ```
 
 ## See Also
 
 - [`cost_model.md`](cost_model.md) — Claude's $35K cost claim, source-checked. Honest re-price is ~$6-10K/mo. Counter-stack is ~$3-5K/mo.
+- [`docs/segment-mv-design.md`](docs/segment-mv-design.md) — ClickHouse materialized-view design for stateful segments (e.g., "viewed pricing 3x in 7 days").
 - The full 4-page written answer (separate submission file)

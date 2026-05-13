@@ -9,12 +9,14 @@
   },
   "scripts": {
     "ingest": "node src/ingester.js",
+    "ingest:clickhouse": "node src/ingester-clickhouse.js",
     "bench": "node src/bench.js",
     "bench:600": "TARGET_RPS=600 DURATION_S=60 node src/bench.js",
     "bench:1000": "TARGET_RPS=1000 DURATION_S=60 node src/bench.js",
     "bench:3000": "TARGET_RPS=3000 DURATION_S=30 node src/bench.js"
   },
   "dependencies": {
+    "@clickhouse/client": "^1.7.0",
     "@duckdb/node-api": "1.5.2-r.1",
     "fastify": "^5.0.0"
   }

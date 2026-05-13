@@ -14,6 +14,7 @@ const TARGET_RPS = Number(process.env.TARGET_RPS ?? 1000);
 const DURATION_S = Number(process.env.DURATION_S ?? 30);
 const SAMPLE_EVERY = Number(process.env.SAMPLE_EVERY ?? 50);
 const WARMUP_S = Number(process.env.WARMUP_S ?? 3);
+const ENGINE = process.env.ENGINE ?? 'DuckDB (local)';
 const URL_POOL_SIZE = 1000;
 const ZIPF_S = 1.2;
 
@@ -177,6 +178,7 @@ async function run() {
   const achievedRps = sent / DURATION_S;
   const stats = {
     target_rps: TARGET_RPS,
+    engine: ENGINE,
     achieved_rps: Math.round(achievedRps),
     duration_s: DURATION_S,
     sent,
@@ -190,20 +192,21 @@ async function run() {
     timestamp: new Date().toISOString(),
   };
 
-  const csvPath = resolve(RAW_DIR, `run-${TARGET_RPS}.csv`);
+  const enginePathSegment = ENGINE.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const csvPath = resolve(RAW_DIR, `run-${enginePathSegment}-${TARGET_RPS}.csv`);
   await writeFile(csvPath, csvLines.join('\n') + '\n');
 
   const mdPath = resolve(RESULTS_DIR, 'RESULTS.md');
   const headerExists = await access(mdPath).then(() => true).catch(() => false);
-  const row = `| ${TARGET_RPS} | ${stats.achieved_rps} | ${stats.sent} | ${stats.errors} | ${stats.measured} | ${stats.p50_ms} | ${stats.p95_ms} | ${stats.p99_ms} | ${stats.max_ms} | ${stats.timestamp} |\n`;
+  const row = `| ${TARGET_RPS} | ${stats.engine} | ${stats.achieved_rps} | ${stats.sent} | ${stats.errors} | ${stats.measured} | ${stats.p50_ms} | ${stats.p95_ms} | ${stats.p99_ms} | ${stats.max_ms} | ${stats.timestamp} |\n`;
   if (!headerExists) {
     const header = [
       '# Benchmark Results',
       '',
-      'Latency = publish (event creation in generator) → row visible in DuckDB query at ingester. Includes HTTP POST, ingester buffering (500ms / 1000-row flush policy), DuckDB appender batch insert, HTTP GET lookup. Single-laptop, single-process ingester.',
+      'Latency = publish (event creation in generator) → row visible at ingester. Includes HTTP POST, ingester buffering (500ms / 1000-row flush policy), backend insert, HTTP GET lookup.',
       '',
-      '| target_rps | achieved_rps | sent | errors | measured_samples | p50_ms | p95_ms | p99_ms | max_ms | timestamp |',
-      '|---|---|---|---|---|---|---|---|---|---|',
+      '| target_rps | engine | achieved_rps | sent | errors | measured_samples | p50_ms | p95_ms | p99_ms | max_ms | timestamp |',
+      '|---|---|---|---|---|---|---|---|---|---|---|',
       row.trimEnd(),
       '',
     ].join('\n');

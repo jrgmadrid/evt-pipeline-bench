@@ -6,11 +6,11 @@
 
 Latency = wall-clock interval from event creation in the generator (`publish_ts`) to row visible in DuckDB query at ingester (`ingest_ts`). Includes HTTP POST overhead, ingester buffering under 500ms / 1000-row flush policy, DuckDB appender batched insert, and an HTTP GET lookup per sampled event.
 
-| target_rps | achieved_rps | sent | errors | measured_samples | p50_ms | p95_ms | p99_ms | max_ms | timestamp |
-|---|---|---|---|---|---|---|---|---|---|
-| 600 | 572 | 34320 | 0 | 1049 | 253 | 478 | 499 | 502 | 2026-05-13T17:52:51Z |
-| 1000 | 952 | 57140 | 0 | 1048 | 254 | 480 | 500 | 502 | 2026-05-13T17:53:52Z |
-| 3000 | 2860 | 85800 | 0 | 716 | 128 | 320 | 340 | 342 | 2026-05-13T17:54:22Z |
+| target_rps | engine | achieved_rps | sent | errors | measured_samples | p50_ms | p95_ms | p99_ms | max_ms | timestamp |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 600 | DuckDB (local) | 572 | 34320 | 0 | 1049 | 253 | 478 | 499 | 502 | 2026-05-13T17:52:51Z |
+| 1000 | DuckDB (local) | 952 | 57140 | 0 | 1048 | 254 | 480 | 500 | 502 | 2026-05-13T17:53:52Z |
+| 3000 | DuckDB (local) | 2860 | 85800 | 0 | 716 | 128 | 320 | 340 | 342 | 2026-05-13T17:54:22Z |
 
 ## Interpretation
 
