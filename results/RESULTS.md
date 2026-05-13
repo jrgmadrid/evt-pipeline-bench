@@ -45,3 +45,4 @@ cat results/RESULTS.md
 ```
 
 Raw per-sample latency data in `results/raw/run-<rps>.csv`.
+| 1000 | ClickHouse Cloud | 951 | 57080 | 0 | 637 | 252 | 476 | 497 | 502 | 2026-05-13T19:54:48.800Z |
