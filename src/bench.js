@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { writeFile, mkdir, appendFile, access } from 'node:fs/promises';
+import { writeFile, readFile, mkdir, appendFile, access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
@@ -198,7 +198,7 @@ async function run() {
 
   const mdPath = resolve(RESULTS_DIR, 'RESULTS.md');
   const headerExists = await access(mdPath).then(() => true).catch(() => false);
-  const row = `| ${TARGET_RPS} | ${stats.engine} | ${stats.achieved_rps} | ${stats.sent} | ${stats.errors} | ${stats.measured} | ${stats.p50_ms} | ${stats.p95_ms} | ${stats.p99_ms} | ${stats.max_ms} | ${stats.timestamp} |\n`;
+  const row = `| ${TARGET_RPS} | ${stats.engine} | ${stats.achieved_rps} | ${stats.sent} | ${stats.errors} | ${stats.measured} | ${stats.p50_ms} | ${stats.p95_ms} | ${stats.p99_ms} | ${stats.max_ms} | ${stats.timestamp} |`;
   if (!headerExists) {
     const header = [
       '# Benchmark Results',
@@ -207,12 +207,26 @@ async function run() {
       '',
       '| target_rps | engine | achieved_rps | sent | errors | measured_samples | p50_ms | p95_ms | p99_ms | max_ms | timestamp |',
       '|---|---|---|---|---|---|---|---|---|---|---|',
-      row.trimEnd(),
+      row,
       '',
     ].join('\n');
     await writeFile(mdPath, header);
   } else {
-    await appendFile(mdPath, row);
+    // Insert into the existing results table rather than appending to end-of-file.
+    const content = await readFile(mdPath, 'utf8');
+    const lines = content.split('\n');
+    const headerIdx = lines.findIndex(l => /^\|\s*target_rps\s*\|/.test(l));
+    if (headerIdx === -1) {
+      await appendFile(mdPath, row + '\n');
+    } else {
+      let lastRowIdx = headerIdx + 1; // separator line
+      for (let i = headerIdx + 2; i < lines.length; i++) {
+        if (/^\|/.test(lines[i])) lastRowIdx = i;
+        else break;
+      }
+      lines.splice(lastRowIdx + 1, 0, row);
+      await writeFile(mdPath, lines.join('\n'));
+    }
   }
 
   console.log('\n[bench] done');

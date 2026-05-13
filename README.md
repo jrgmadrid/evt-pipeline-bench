@@ -2,9 +2,9 @@
 
 Operating artifact for the `engineer-004` ("Real-Time Analytics Pipeline") submission to [Single Grain's Beat Claude](https://github.com/ericosiu/beat-claude) hiring challenge. Measures publish-to-queryable latency of the proposed data-plane architecture on commodity hardware.
 
-> **Claim [Benchmarked]:** On a single laptop, single Node process, single embedded DuckDB instance, sustained 2,860 events/sec with **zero errors** and **p99 publish-to-queryable latency of 340ms**. Brief target: 50M events/day (≈580 rps avg, ≈5,800 rps peak) with <5s latency.
+> **Claim [Benchmarked]:** Sustained 2,860 events/sec single-laptop, **zero errors / 234,340 events**, **p99 publish-to-queryable latency under 500ms**. The 1000-rps scenario rerun against the actual production target (managed ClickHouse Cloud) measured within 2-4ms of the local DuckDB stand-in at every quantile, confirming the architecture's 500ms flush policy is the floor, not the engine. Brief target: 50M events/day (≈580 rps avg, ≈5,800 rps peak) with <5s latency.
 
-See [`results/RESULTS.md`](results/RESULTS.md) for measured numbers across three load scenarios.
+See [`results/RESULTS.md`](results/RESULTS.md) for measured numbers across four scenarios (three local + one against managed ClickHouse Cloud).
 
 ## Why This Artifact Exists
 
