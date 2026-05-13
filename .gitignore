@@ -1,0 +1,7 @@
+node_modules/
+*.duckdb
+*.duckdb.wal
+.DS_Store
+
+# Interview-submission draft lives locally, not in the public artifact.
+submission.md

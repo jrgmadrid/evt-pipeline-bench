@@ -1,0 +1,21 @@
+{
+  "name": "evt-pipeline-bench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Operating artifact for engineer-004 system design submission. Measures publish-to-queryable latency of an event-analytics data plane.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "ingest": "node src/ingester.js",
+    "bench": "node src/bench.js",
+    "bench:600": "TARGET_RPS=600 DURATION_S=60 node src/bench.js",
+    "bench:1000": "TARGET_RPS=1000 DURATION_S=60 node src/bench.js",
+    "bench:3000": "TARGET_RPS=3000 DURATION_S=30 node src/bench.js"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.2-r.1",
+    "fastify": "^5.0.0"
+  }
+}
